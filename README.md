@@ -102,3 +102,5 @@ See `.env.example`. Generate with `node scripts/setup.js`.
 | `MAX_FIRMWARE_MB` | Max upload size in MB (default: 10) |
 | `KEEP_OLD_VERSIONS` | Number of old versions to keep (default: 3) |
 | `ROLLBACK_EXPIRE_MIN` | Rollback TTL in minutes (default: 15) |
+
+pw:prasa

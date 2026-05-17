@@ -5,6 +5,7 @@ import { renderStatusBar }                        from './components/statusBar.j
 import { renderFirmwareTable }                    from './components/firmwareTable.js';
 import { renderRollbackBanner, renderRollbackCard } from './components/rollbackBanner.js';
 import { setupUploadForm, showGlobalAlert }       from './upload.js';
+import { renderActivityGraph }                    from './components/activityGraph.js';
 
 const API = (path, opts = {}) =>
   fetch(path, {
@@ -41,6 +42,7 @@ async function refresh() {
     renderRollbackBanner(status.rollback);
     renderRollbackCard(status.rollback, handleRollbackSend, handleRollbackCancel);
     renderFirmwareTable(firmwares, handleDeleteFirmware);
+    renderActivityGraph(firmwares);
     renderConstants(status);
 
     document.getElementById('connection-dot')?.classList.remove('offline');
