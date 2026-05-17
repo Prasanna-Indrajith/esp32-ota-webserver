@@ -1,0 +1,63 @@
+// public/js/components/rollbackBanner.js
+// Top banner (when rollback active) + button area inside rollback card
+
+export function renderRollbackBanner(rollback) {
+  const banner = document.getElementById('rollback-banner');
+  if (!banner) return;
+
+  if (!rollback.active) {
+    banner.classList.add('hidden');
+    banner.innerHTML = '';
+    return;
+  }
+
+  banner.classList.remove('hidden');
+  // Build with DOM API to avoid XSS
+  banner.className = 'rollback-banner';
+  banner.innerHTML = '';
+
+  const icon = document.createElement('div');
+  icon.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+
+  const info = document.createElement('div');
+  info.style.flex = '1';
+  const label = document.createElement('span');
+  label.className = 'rb-label';
+  label.textContent = 'Rollback active — devices rolling back now';
+  const sub = document.createElement('span');
+  sub.className = 'rb-sub';
+  sub.textContent = `Sent: ${rollback.since} · Expires in ~${rollback.remainingMin} min`;
+  const ttl = document.createElement('div');
+  ttl.className = 'rb-ttl';
+  const ttlFill = document.createElement('div');
+  ttlFill.className = 'rb-ttl-fill';
+  ttlFill.style.width = `${rollback.remainingPct}%`;
+  ttl.appendChild(ttlFill);
+  info.append(label, sub, ttl);
+
+  banner.append(icon, info);
+}
+
+export function renderRollbackCard(rollback, onSend, onCancel) {
+  const area = document.getElementById('rollback-btn-area');
+  if (!area) return;
+  area.innerHTML = '';
+
+  const btn = document.createElement('button');
+  btn.className = rollback.active ? 'btn btn-primary btn-full' : 'btn btn-amber btn-full';
+  btn.id = rollback.active ? 'cancel-rollback-btn' : 'send-rollback-btn';
+
+  if (rollback.active) {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Cancel Rollback`;
+    btn.addEventListener('click', onCancel);
+  } else {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Rollback All Devices`;
+    btn.addEventListener('click', () => {
+      if (confirm('Send rollback to ALL devices?\nThey will reboot to their previously saved flash partition.')) {
+        onSend();
+      }
+    });
+  }
+
+  area.appendChild(btn);
+}
