@@ -1,19 +1,32 @@
 // public/js/dashboard.js
-// Main dashboard controller — wires all components together
-
-import { renderStatusBar }                        from './components/statusBar.js';
-import { renderFirmwareTable }                    from './components/firmwareTable.js';
+// Main dashboard controller — project-aware. All API calls use the currently
+// selected project ID from projectSwitcher.
+import { renderStatusBar }                          from './components/statusBar.js';
+import { renderFirmwareTable }                      from './components/firmwareTable.js';
 import { renderRollbackBanner, renderRollbackCard } from './components/rollbackBanner.js';
-import { setupUploadForm, showGlobalAlert }       from './upload.js';
-import { renderActivityGraph }                    from './components/activityGraph.js';
+import { setupUploadForm, showGlobalAlert }         from './upload.js';
+import { renderActivityGraph }                      from './components/activityGraph.js';
+import {
+  fetchProjects, setupProjectSwitcher,
+  getCurrentProjectId,
+} from './components/projectSwitcher.js';
 
+// ── API helper (always adds CSRF header) ─────────────────────────────────────
 const API = (path, opts = {}) =>
   fetch(path, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json', ...opts.headers },
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json',
+      ...opts.headers,
+    },
     ...opts,
   });
 
-// ── Auth guard ──────────────────────────────────────────────────
+// Project-scoped API helper
+const PAPI = (suffix, opts = {}) =>
+  API(`/api/projects/${encodeURIComponent(getCurrentProjectId())}${suffix}`, opts);
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
 async function checkAuth() {
   try {
     const r = await fetch('/api/auth');
@@ -24,14 +37,14 @@ async function checkAuth() {
   }
 }
 
-// ── Fetch & render all dashboard data ──────────────────────────
+// ── Fetch & render all dashboard data for current project ────────────────────
 let refreshTimer = null;
 
 async function refresh() {
   try {
     const [statusRes, firmwareRes] = await Promise.all([
-      API('/api/status'),
-      API('/api/firmwares'),
+      PAPI('/status'),
+      PAPI('/firmwares'),
     ]);
     if (statusRes.status === 401) { window.location.replace('/'); return; }
 
@@ -51,17 +64,18 @@ async function refresh() {
   }
 }
 
-// ── Constants block ─────────────────────────────────────────────
+// ── Constants block ───────────────────────────────────────────────────────────
 function renderConstants(status) {
   const block = document.getElementById('constants-block');
   if (!block) return;
-  // textContent only — never innerHTML with server data
+  const pid = getCurrentProjectId();
   block.textContent =
+    `const char* PROJECT_ID  = "${pid}";\n` +
     `const char* CURRENT_VER = "${status.version}";\n` +
-    `#define DEFAULT_OTA_URL "${location.origin}/ota/check"`;
+    `#define DEFAULT_OTA_URL "${location.origin}/ota/${pid}/check"`;
 }
 
-// ── Copy constants ───────────────────────────────────────────────
+// ── Copy constants ────────────────────────────────────────────────────────────
 function setupCopyBtn() {
   document.getElementById('copy-constants-btn')?.addEventListener('click', async () => {
     const text = document.getElementById('constants-block')?.textContent || '';
@@ -73,7 +87,7 @@ function setupCopyBtn() {
   });
 }
 
-// ── Switch version ───────────────────────────────────────────────
+// ── Switch version ────────────────────────────────────────────────────────────
 function setupSwitchForm() {
   document.getElementById('switch-form')?.addEventListener('submit', async e => {
     e.preventDefault();
@@ -84,7 +98,7 @@ function setupSwitchForm() {
     const btn = document.getElementById('switch-btn');
     btn.disabled = true;
     try {
-      const r = await API('/api/switch', { method: 'POST', body: JSON.stringify({ version }) });
+      const r = await PAPI('/switch', { method: 'POST', body: JSON.stringify({ version }) });
       const d = await r.json();
       showGlobalAlert(d.message || d.error, r.ok ? 'success' : 'error');
       if (r.ok) { document.getElementById('switch-form').reset(); await refresh(); }
@@ -92,29 +106,29 @@ function setupSwitchForm() {
   });
 }
 
-// ── Rollback actions ─────────────────────────────────────────────
+// ── Rollback actions ──────────────────────────────────────────────────────────
 async function handleRollbackSend() {
-  const r = await API('/api/rollback/send', { method: 'POST' });
+  const r = await PAPI('/rollback/send', { method: 'POST' });
   const d = await r.json();
   showGlobalAlert(d.message || d.error, r.ok ? 'success' : 'error');
   await refresh();
 }
 async function handleRollbackCancel() {
-  const r = await API('/api/rollback/cancel', { method: 'POST' });
+  const r = await PAPI('/rollback/cancel', { method: 'POST' });
   const d = await r.json();
   showGlobalAlert(d.message || d.error, r.ok ? 'success' : 'error');
   await refresh();
 }
 
-// ── Delete firmware ──────────────────────────────────────────────
+// ── Delete firmware ───────────────────────────────────────────────────────────
 async function handleDeleteFirmware(version) {
-  const r = await API(`/api/firmware/${encodeURIComponent(version)}`, { method: 'DELETE' });
+  const r = await PAPI(`/firmware/${encodeURIComponent(version)}`, { method: 'DELETE' });
   const d = await r.json();
   showGlobalAlert(d.message || d.error, r.ok ? 'success' : 'error');
   await refresh();
 }
 
-// ── Logout ───────────────────────────────────────────────────────
+// ── Logout ────────────────────────────────────────────────────────────────────
 function setupLogout() {
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await API('/api/logout', { method: 'POST' });
@@ -122,19 +136,34 @@ function setupLogout() {
   });
 }
 
-// ── Auto-refresh every 30 s ──────────────────────────────────────
+// ── Auto-refresh every 30 s ───────────────────────────────────────────────────
 function startAutoRefresh() {
   clearInterval(refreshTimer);
   refreshTimer = setInterval(refresh, 30_000);
 }
 
-// ── Init ─────────────────────────────────────────────────────────
+// ── Re-render when project changes ───────────────────────────────────────────
+function onProjectChange() {
+  refresh();
+  // Re-wire upload form with new project-scoped PAPI
+  setupUploadForm(refresh, PAPI);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuth();
+
+  // Load projects first, then render dashboard
+  await fetchProjects(API);
+  setupProjectSwitcher(API);
+
   await refresh();
-  setupUploadForm(refresh);
+  setupUploadForm(refresh, PAPI);
   setupSwitchForm();
   setupCopyBtn();
   setupLogout();
   startAutoRefresh();
+
+  // Listen for project switches
+  window.addEventListener('project:change', onProjectChange);
 });
