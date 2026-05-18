@@ -1,67 +1,77 @@
 // public/js/upload.js
-// XHR-based upload with real progress bar
+// XHR-based upload with real progress bar.
+// setupUploadForm now accepts an optional PAPI function for project-scoped uploads.
 
-export function setupUploadForm(onSuccess) {
-  const form     = document.getElementById('upload-form');
-  const input    = document.getElementById('firmware-input');
-  const dropZone = document.getElementById('drop-zone');
-  const fileName = document.getElementById('upload-filename');
-  const progWrap = document.getElementById('upload-progress-wrap');
-  const progFill = document.getElementById('upload-progress-fill');
-  const progLbl  = document.getElementById('upload-progress-label');
-  const btn      = document.getElementById('upload-btn');
+import { getCurrentProjectId } from './components/projectSwitcher.js';
 
+export function setupUploadForm(onSuccess, PAPI) {
+  const form = document.getElementById('upload-form');
   if (!form) return;
 
-  // ── File selection display ──────────────────────────────────
+  // Clone to remove old event listeners when switching projects
+  const fresh = form.cloneNode(true);
+  form.parentNode.replaceChild(fresh, form);
+
+  const activeForm = document.getElementById('upload-form');
+  const dz         = document.getElementById('drop-zone');
+  const fileNameEl = document.getElementById('upload-filename');
+  const inp        = document.getElementById('firmware-input');
+
+  // ── File selection display ───────────────────────────────────────────────
   function setFile(file) {
     if (!file) return;
-    fileName.textContent = file.name;
-    dropZone.classList.add('has-file');
+    fileNameEl.textContent = file.name;
+    dz.classList.add('has-file');
   }
 
-  input.addEventListener('change', () => setFile(input.files[0]));
+  inp.addEventListener('change', () => setFile(inp.files[0]));
 
-  // ── Drag-and-drop ───────────────────────────────────────────
-  dropZone.addEventListener('click', () => input.click());
-  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+  // ── Drag-and-drop ────────────────────────────────────────────────────────
+  dz.addEventListener('click',   () => inp.click());
+  dz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') inp.click(); });
 
-  ['dragenter','dragover'].forEach(ev => {
-    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  });
-  ['dragleave','drop'].forEach(ev => {
-    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
-  });
-  dropZone.addEventListener('drop', e => {
+  ['dragenter', 'dragover'].forEach(ev =>
+    dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag-over'); })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag-over'); })
+  );
+  dz.addEventListener('drop', e => {
     const file = e.dataTransfer.files[0];
     if (file) {
-      // Transfer dropped file to the hidden input
       const dt = new DataTransfer();
       dt.items.add(file);
-      input.files = dt.files;
+      inp.files = dt.files;
       setFile(file);
     }
   });
 
-  // ── Form submit ─────────────────────────────────────────────
-  form.addEventListener('submit', e => {
+  // ── Form submit ───────────────────────────────────────────────────────────
+  activeForm.addEventListener('submit', e => {
     e.preventDefault();
-    const file    = input.files[0];
+    const file    = inp.files[0];
     const version = document.getElementById('upload-version').value.trim();
 
-    if (!file) { showGlobalAlert('Please select a .bin file first', 'error'); return; }
+    if (!file)                             { showGlobalAlert('Please select a .bin file first', 'error'); return; }
     if (!/^\d+\.\d+\.\d+$/.test(version)) { showGlobalAlert('Version must be X.Y.Z (e.g. 1.2.3)', 'error'); return; }
 
     const formData = new FormData();
     formData.append('firmware', file);
     formData.append('version', version);
 
-    const xhr = new XMLHttpRequest();
+    // Build upload URL — project-scoped if PAPI provided, else backward-compat
+    const pid       = getCurrentProjectId();
+    const uploadUrl = `/api/projects/${encodeURIComponent(pid)}/upload`;
 
-    // ── Real upload progress ──────────────────────────────────
-    xhr.upload.addEventListener('progress', e => {
-      if (!e.lengthComputable) return;
-      const pct = Math.round((e.loaded / e.total) * 90); // reserve last 10% for server processing
+    const xhr      = new XMLHttpRequest();
+    const progWrap = document.getElementById('upload-progress-wrap');
+    const progFill = document.getElementById('upload-progress-fill');
+    const progLbl  = document.getElementById('upload-progress-label');
+    const btn      = document.getElementById('upload-btn');
+
+    xhr.upload.addEventListener('progress', ev => {
+      if (!ev.lengthComputable) return;
+      const pct = Math.round((ev.loaded / ev.total) * 90);
       progFill.style.width = pct + '%';
       progLbl.textContent  = pct + '%';
     });
@@ -73,42 +83,42 @@ export function setupUploadForm(onSuccess) {
       try { data = JSON.parse(xhr.responseText); } catch { data = {}; }
       if (xhr.status >= 200 && xhr.status < 300 && data.ok) {
         showGlobalAlert(data.message || 'Upload successful!', 'success');
-        form.reset();
-        fileName.textContent = 'Max 10 MB · ESP32 binary only';
-        dropZone.classList.remove('has-file');
+        activeForm.reset();
+        fileNameEl.textContent = 'Max 10 MB · ESP32 binary only';
+        dz.classList.remove('has-file');
         onSuccess();
       } else {
         showGlobalAlert(data.error || 'Upload failed', 'error');
       }
-      setUploadUI(false);
+      setUploadUI(false, progWrap, progFill, progLbl, btn);
     });
 
     xhr.addEventListener('error', () => {
       showGlobalAlert('Network error during upload', 'error');
-      setUploadUI(false);
+      setUploadUI(false, progWrap, progFill, progLbl, btn);
     });
 
-    xhr.open('POST', '/api/upload');
+    xhr.open('POST', uploadUrl);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    setUploadUI(true);
+    setUploadUI(true, progWrap, progFill, progLbl, btn);
     xhr.send(formData);
   });
-
-  function setUploadUI(loading) {
-    progWrap.classList.toggle('hidden', !loading);
-    if (!loading) { progFill.style.width = '0%'; progLbl.textContent = '0%'; }
-    btn.disabled = loading;
-    btn.querySelector('.btn-text').classList.toggle('hidden', loading);
-    btn.querySelector('.btn-spinner').classList.toggle('hidden', !loading);
-  }
 }
 
-// Shared alert helper used by upload and dashboard
+function setUploadUI(loading, wrap, fill, lbl, btn) {
+  wrap.classList.toggle('hidden', !loading);
+  if (!loading) { fill.style.width = '0%'; lbl.textContent = '0%'; }
+  btn.disabled = loading;
+  btn.querySelector('.btn-text').classList.toggle('hidden', loading);
+  btn.querySelector('.btn-spinner').classList.toggle('hidden', !loading);
+}
+
+// ── Shared alert helper ───────────────────────────────────────────────────────
 export function showGlobalAlert(msg, type = 'success') {
   const el = document.getElementById('global-alert');
   if (!el) return;
   el.className = `alert alert-${type}`;
-  el.textContent = msg;        // textContent — never innerHTML
+  el.textContent = msg;       // textContent — never innerHTML with external data
   el.classList.remove('hidden');
   clearTimeout(el._timer);
   el._timer = setTimeout(() => el.classList.add('hidden'), 5000);

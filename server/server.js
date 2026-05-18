@@ -10,7 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
-import { PORT, NODE_ENV, SESSION_SECRET, DATA_DIR, FIRMWARE_DIR, UPLOAD_TMP_DIR } from './config/constants.js';
+import { PORT, NODE_ENV, SESSION_SECRET, DATA_DIR, UPLOAD_TMP_DIR, PROJECTS_DIR } from './config/constants.js';
 import apiRouter from './routes/api.js';
 import otaRouter from './routes/ota.js';
 
@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
 
 // ── Ensure required directories exist ──────────────────────────────────────
-for (const dir of [DATA_DIR, FIRMWARE_DIR, UPLOAD_TMP_DIR]) {
+for (const dir of [DATA_DIR, PROJECTS_DIR, UPLOAD_TMP_DIR]) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
@@ -87,7 +87,8 @@ app.use((err, _req, res, _next) => {
 // ── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n⚡ ESP32 OTA Server running`);
-  console.log(`   Admin UI  → http://localhost:${PORT}`);
-  console.log(`   OTA check → http://localhost:${PORT}/ota/check`);
-  console.log(`   Mode      → ${NODE_ENV}\n`);
+  console.log(`   Admin UI        → http://localhost:${PORT}`);
+  console.log(`   OTA check       → http://localhost:${PORT}/ota/<project>/check`);
+  console.log(`   OTA check (compat) → http://localhost:${PORT}/ota/check`);
+  console.log(`   Mode            → ${NODE_ENV}\n`);
 });
