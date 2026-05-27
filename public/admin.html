@@ -1,231 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32 OTA Admin — Dashboard</title>
-<meta name="description" content="ESP32 OTA firmware management dashboard">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 OTA Admin — Dashboard</title>
+  <meta name="description" content="ESP32 OTA firmware management dashboard">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
 </head>
+
 <body class="dashboard-page">
 
-<!-- ── HEADER ─────────────────────────────────────────────────── -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-brand">
-      <div class="brand-icon sm">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
-      </div>
-      <span class="topbar-title">ESP32 OTA Admin</span>
-      <span id="env-badge" class="env-badge hidden">DEV</span>
-    </div>
-
-    <!-- ── Project Switcher ── -->
-    <div id="project-switcher" class="project-switcher">
-      <!-- Rendered by projectSwitcher.js -->
-    </div>
-    <button id="new-project-btn" class="btn btn-ghost btn-sm" title="Create new project">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-      </svg>
-      New Project
-    </button>
-
-    <div class="topbar-actions">
-      <div class="connection-dot" id="connection-dot" title="Server connection"></div>
-      <span class="topbar-user">SLT Admin</span>
-      <button id="logout-btn" class="btn btn-ghost btn-sm">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
-        </svg>
-        Logout
-      </button>
-    </div>
-
-  </div>
-</header>
-
-<!-- ── MAIN ───────────────────────────────────────────────────── -->
-<main class="dashboard-main" id="main-content">
-
-  <!-- Global alert -->
-  <div id="global-alert" class="alert hidden" role="alert"></div>
-  <!-- Rollback Banner (dynamic) -->
-  <div id="rollback-banner" class="hidden"></div>
-
-  <!-- ── Status Cards ── -->
-  <section class="stat-grid" id="stat-grid" aria-label="System status">
-    <!-- Rendered by statusBar.js -->
-    <div class="stat-card skeleton"></div>
-    <div class="stat-card skeleton"></div>
-    <div class="stat-card skeleton"></div>
-    <div class="stat-card skeleton"></div>
-  </section>
-
-  <!-- ── Top 3-column Grid ── -->
-  <div class="main-grid">
-
-    <!-- Col 1: Upload -->
-    <div class="panel glass" id="upload-panel">
-      <div class="panel-header">
-        <div class="panel-icon upload-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-            <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <!-- Brand (left) -->
+      <div class="topbar-brand">
+        <div class="brand-icon sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            aria-hidden="true">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
-        <h2 class="panel-title">Upload Firmware</h2>
+        <span class="topbar-title" translate="no">ESP32 OTA Panel</span>
+        <span id="env-badge" class="env-badge hidden">DEV</span>
       </div>
-      <form id="upload-form" novalidate>
-        <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Click or drag to select firmware file">
-          <div class="drop-zone-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-          </div>
-          <p class="drop-zone-text">Drop <strong>.bin</strong> here or click to browse</p>
-          <p class="drop-zone-hint" id="upload-filename">Max 10 MB · ESP32 binary only</p>
-          <input type="file" id="firmware-input" name="firmware" accept=".bin" class="sr-only">
-        </div>
-        <div class="field-group">
-          <label for="upload-version" class="field-label">Version Number</label>
-          <div class="field-wrapper">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-            </svg>
-            <input id="upload-version" type="text" name="version" class="field-input"
-              placeholder="e.g. 1.1.5" pattern="\d+\.\d+\.\d+" required>
-          </div>
-        </div>
-        <div class="progress-wrap hidden" id="upload-progress-wrap">
-          <div class="progress-bar">
-            <div class="progress-fill" id="upload-progress-fill"></div>
-          </div>
-          <span class="progress-label" id="upload-progress-label">0%</span>
-        </div>
-        <button type="submit" id="upload-btn" class="btn btn-success btn-full">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-            <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+
+      <!-- Filter sub-bar -->
+      <div class="filter-bar">
+        <div id="project-switcher" class="project-switcher"></div>
+        <button id="new-project-btn" class="btn btn-ghost btn-sm" title="Create new project"
+          aria-label="Create new project">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
           </svg>
-          <span class="btn-text">Upload &amp; Activate</span>
-          <span class="btn-spinner hidden"></span>
+          New
         </button>
-      </form>
+      </div>
+
+      <!-- Actions (right) -->
+      <div class="topbar-actions">
+        <div class="connection-dot" id="connection-dot" title="Server connection" aria-label="Server connection status">
+        </div>
+        <span class="topbar-user">SLT Admin</span>
+        <button id="logout-btn" class="btn btn-ghost btn-sm" aria-label="Log out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+          </svg>
+          Logout
+        </button>
+      </div>
     </div>
 
-    <!-- Col 2: Switch + Rollback stacked -->
-    <div class="panel-col">
 
-      <div class="panel glass" id="switch-panel">
-        <div class="panel-header">
-          <div class="panel-icon switch-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/>
-              <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────── -->
+  <main class="dashboard-main" id="main-content">
+
+    <!-- Rollback Banner (dynamic, height-animated) -->
+    <div id="rollback-banner"></div>
+
+    <!-- ════ TWO-COLUMN LAYOUT ════ -->
+    <div class="dashboard-body">
+
+      <!-- ══ LEFT RAIL — Control Plane ══ -->
+      <aside class="left-rail">
+
+        <!-- 2×2 Stat Grid -->
+        <section class="stat-grid" id="stat-grid" aria-label="System status">
+          <div class="stat-card skeleton"></div>
+          <div class="stat-card skeleton"></div>
+          <div class="stat-card skeleton"></div>
+          <div class="stat-card skeleton"></div>
+        </section>
+
+        <!-- Upload Firmware -->
+        <div class="panel" id="upload-panel">
+          <div class="panel-header">
+            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <polyline points="16 16 12 12 8 16" />
+              <line x1="12" y1="12" x2="12" y2="21" />
+              <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
             </svg>
+            <h2 class="panel-title">Upload Firmware</h2>
           </div>
-          <h2 class="panel-title">Switch Version</h2>
-        </div>
-        <form id="switch-form" novalidate>
-          <div class="field-group">
-            <label for="switch-version" class="field-label">Activate existing version</label>
-            <div class="field-wrapper">
-              <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <input id="switch-version" type="text" name="version" class="field-input"
-                placeholder="e.g. 1.1.3" pattern="\d+\.\d+\.\d+">
+          <form id="upload-form" novalidate>
+            <div class="drop-zone" id="drop-zone" role="button" tabindex="0"
+              aria-label="Click or drag to select firmware file">
+              <div class="drop-zone-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <p class="drop-zone-text">Drop <strong>.bin</strong> or click</p>
+              <p class="drop-zone-hint" id="upload-filename">Max 10 MB · ESP32 binary</p>
+              <input type="file" id="firmware-input" name="firmware" accept=".bin" class="sr-only">
             </div>
-          </div>
-          <button type="submit" id="switch-btn" class="btn btn-primary btn-full">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/>
+            <div class="field-group">
+              <label for="upload-version" class="field-label">Version</label>
+              <div class="field-wrapper">
+                <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" aria-hidden="true">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+                <input id="upload-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.5"
+                  pattern="\d+\.\d+\.\d+" required>
+              </div>
+            </div>
+            <div class="progress-wrap hidden" id="upload-progress-wrap">
+              <div class="progress-bar">
+                <div class="progress-fill" id="upload-progress-fill"></div>
+              </div>
+              <span class="progress-label" id="upload-progress-label">0%</span>
+            </div>
+            <button type="submit" id="upload-btn" class="btn btn-success btn-full">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="16 16 12 12 8 16" />
+                <line x1="12" y1="12" x2="12" y2="21" />
+                <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
+              </svg>
+              <span class="btn-text">Upload &amp; Activate</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Switch Version -->
+        <div class="panel" id="switch-panel">
+          <div class="panel-header">
+            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <polyline points="17 1 21 5 17 9" />
+              <path d="M3 11V9a4 4 0 014-4h14" />
+              <polyline points="7 23 3 19 7 15" />
+              <path d="M21 13v2a4 4 0 01-4 4H3" />
             </svg>
-            Switch Active Version
-          </button>
-        </form>
-      </div>
-
-      <div class="panel panel-rollback glass" id="rollback-panel">
-        <div class="panel-header">
-          <div class="panel-icon rollback-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="1 4 1 10 7 10"/>
-              <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
-            </svg>
+            <h2 class="panel-title">Switch Version</h2>
           </div>
-          <h2 class="panel-title">Rollback All Devices</h2>
+          <form id="switch-form" novalidate>
+            <div class="field-group">
+              <label for="switch-version" class="field-label">Target version</label>
+              <div class="field-wrapper">
+                <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <input id="switch-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.3"
+                  pattern="\d+\.\d+\.\d+">
+              </div>
+            </div>
+            <button type="submit" id="switch-btn" class="btn btn-primary btn-full">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 014-4h14" />
+              </svg>
+              Switch Version
+            </button>
+          </form>
         </div>
-        <p class="panel-desc">
-          Previous firmware is <strong>already saved in ESP32 flash</strong> —
-          no re-download needed. Devices boot their other partition.
-          Rollback within <strong>15 min</strong>.
-        </p>
-        <div id="rollback-btn-area">
-          <!-- Rendered by rollbackBanner.js -->
+
+        <!-- Rollback — bottom of rail, intentionally last -->
+        <div class="panel panel-rollback" id="rollback-panel">
+          <div class="panel-header">
+            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)"
+              stroke-width="2" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+            </svg>
+            <h2 class="panel-title" style="color:var(--amber)">Rollback</h2>
+          </div>
+          <p class="panel-desc">Revert all devices to their previous flash partition. Cannot be undone — 15 min window.
+          </p>
+          <div id="rollback-btn-area"></div>
         </div>
-      </div>
 
-    </div><!-- /.panel-col -->
+      </aside><!-- /.left-rail -->
 
-    <!-- Col 3: Activity Graph -->
-    <section class="panel glass" id="activity-graph-panel">
-      <!-- Rendered by activityGraph.js -->
-      <div class="ag-placeholder skeleton" style="height:120px;border-radius:var(--radius)"></div>
-    </section>
+      <!-- ══ RIGHT CANVAS — Data Plane ══ -->
+      <div class="right-canvas">
 
-  </div><!-- /.main-grid -->
+        <!-- Activity Graph -->
+        <section class="panel" id="activity-graph-panel">
+          <!-- Rendered by activityGraph.js -->
+          <div class="ag-placeholder skeleton" style="height:100%;border-radius:var(--radius)"></div>
+        </section>
 
-  <!-- ── Bottom 2-column Row ── -->
-  <div class="bottom-grid">
+        <!-- Firmware Table -->
+        <section class="panel" id="firmware-table-panel">
+          <div class="panel-header">
+            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <path
+                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            <h2 class="panel-title">Firmware Files</h2>
+            <span class="panel-badge" id="firmware-count-badge">—</span>
+          </div>
+          <div id="firmware-table-body" class="panel-scroll-body">
+            <div class="table-skeleton"></div>
+          </div>
+        </section>
 
-    <section class="panel glass" id="firmware-table-panel">
-      <div class="panel-header">
-        <div class="panel-icon table-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-        </div>
-        <h2 class="panel-title">Stored Firmware Files</h2>
-        <span class="panel-badge" id="firmware-count-badge">—</span>
-      </div>
-      <div id="firmware-table-body" class="panel-scroll-body">
-        <div class="table-skeleton"></div>
-      </div>
-    </section>
+        <!-- Code Constants -->
+        <section class="panel" id="constants-panel">
+          <div class="panel-header">
+            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+            <h2 class="panel-title">ESP32 Constants</h2>
+            <button id="copy-constants-btn" class="btn btn-ghost btn-sm" aria-label="Copy constants to clipboard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre class="code-block" id="constants-block">Loading...</pre>
+        </section>
 
-    <section class="panel glass" id="constants-panel">
-      <div class="panel-header">
-        <div class="panel-icon code-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-          </svg>
-        </div>
-        <h2 class="panel-title">ESP32 Code Constants</h2>
-        <button id="copy-constants-btn" class="btn btn-ghost btn-sm" aria-label="Copy constants to clipboard">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-          Copy
-        </button>
-      </div>
-      <pre class="code-block" id="constants-block">Loading...</pre>
-    </section>
+      </div><!-- /.right-canvas -->
 
-  </div><!-- /.bottom-grid -->
+    </div><!-- /.dashboard-body -->
 
-</main>
+  </main>
 
-<script src="/js/dashboard.js" type="module"></script>
+  <script src="./js/dashboard.js" type="module"></script>
 </body>
+
 </html>
