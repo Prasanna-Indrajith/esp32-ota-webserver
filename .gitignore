@@ -21,3 +21,7 @@ node_modules/
 *.swo
 Thumbs.db
 .vscode/settings.json
+
+# === Agent Skiil ===
+skills-lock.json
+.agents/

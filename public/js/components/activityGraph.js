@@ -56,19 +56,19 @@ function levelFor(count) {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function renderActivityGraph(firmwares) {
   const container = document.getElementById('activity-graph-panel');
   if (!container) return;
 
   const actMap = buildActivityMap(firmwares);
-  const weeks  = buildWeekGrid();
+  const weeks = buildWeekGrid();
 
   // ── Summary stats ────────────────────────────────────────────────
   const totalUploads = firmwares.length;
-  const activeDays   = Object.keys(actMap).length;
+  const activeDays = Object.keys(actMap).length;
   const last30 = (() => {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
     return firmwares.filter(fw => new Date(fw.uploaded) >= cutoff).length;
@@ -87,16 +87,16 @@ export function renderActivityGraph(firmwares) {
   });
 
   // ── Build SVG ────────────────────────────────────────────────────
-  const CELL   = 13;   // cell size px
-  const GAP    = 3;    // gap between cells
-  const STEP   = CELL + GAP;
-  const PAD_L  = 32;   // left pad for day labels
-  const PAD_T  = 22;   // top pad for month labels
-  const W      = PAD_L + weeks.length * STEP + GAP;
-  const H      = PAD_T + 7 * STEP + 4;
+  const CELL = 13;   // cell size px
+  const GAP = 3;    // gap between cells
+  const STEP = CELL + GAP;
+  const PAD_L = 32;   // left pad for day labels
+  const PAD_T = 22;   // top pad for month labels
+  const W = PAD_L + weeks.length * STEP + GAP;
+  const H = PAD_T + 7 * STEP + 4;
 
   const svgNS = 'http://www.w3.org/2000/svg';
-  const svg   = document.createElementNS(svgNS, 'svg');
+  const svg = document.createElementNS(svgNS, 'svg');
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('aria-label', 'Firmware upload activity');
   svg.style.cssText = 'width:100%;height:auto;display:block;overflow:visible';
@@ -146,7 +146,7 @@ export function renderActivityGraph(firmwares) {
     week.forEach((day, row) => {
       if (day > today) return; // don't render future cells
 
-      const key   = dateKey(day);
+      const key = dateKey(day);
       const count = actMap[key] || 0;
       const level = levelFor(count);
       const isFuture = day > today;
@@ -171,16 +171,16 @@ export function renderActivityGraph(firmwares) {
         rect.style.transformOrigin = `${PAD_L + col * STEP + CELL / 2}px ${PAD_T + row * STEP + CELL / 2}px`;
 
         const label = count
-          ? `${count} upload${count > 1 ? 's' : ''} on ${day.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`
-          : `No uploads on ${day.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`;
+          ? `${count} upload${count > 1 ? 's' : ''} on ${day.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+          : `No uploads on ${day.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
         tooltip.textContent = label;
         tooltip.style.opacity = '1';
         tooltip.style.left = `${e.clientX + 12}px`;
-        tooltip.style.top  = `${e.clientY - 28}px`;
+        tooltip.style.top = `${e.clientY - 28}px`;
       });
       rect.addEventListener('mousemove', e => {
         tooltip.style.left = `${e.clientX + 12}px`;
-        tooltip.style.top  = `${e.clientY - 28}px`;
+        tooltip.style.top = `${e.clientY - 28}px`;
       });
       rect.addEventListener('mouseleave', () => {
         rect.style.transform = '';
@@ -192,74 +192,79 @@ export function renderActivityGraph(firmwares) {
   });
 
   // ── Legend ──────────────────────────────────────────────────────
-  const legendY = H + 2;
-  const legendLabels = ['Less', '', '', '', 'More'];
-  [0, 1, 2, 3, 4].forEach((lvl, i) => {
-    const lx = W - (5 - i) * STEP - 8;
-    const r  = document.createElementNS(svgNS, 'rect');
-    r.setAttribute('x', lx);
-    r.setAttribute('y', legendY);
-    r.setAttribute('width', CELL);
-    r.setAttribute('height', CELL);
-    r.setAttribute('rx', 3);
-    r.setAttribute('ry', 3);
-    r.style.fill = `var(--ag-level-${lvl})`;
-    svg.appendChild(r);
-  });
+  // const legendY = H + 2;
+  // const legendLabels = ['Less', '', '', '', 'More'];
+  // [0, 1, 2, 3, 4].forEach((lvl, i) => {
+  //   const lx = W - (5 - i) * STEP - 8;
+  //   const r = document.createElementNS(svgNS, 'rect');
+  //   r.setAttribute('x', lx);
+  //   r.setAttribute('y', legendY);
+  //   r.setAttribute('width', CELL);
+  //   r.setAttribute('height', CELL);
+  //   r.setAttribute('rx', 3);
+  //   r.setAttribute('ry', 3);
+  //   r.style.fill = `var(--ag-level-${lvl})`;
+  //   svg.appendChild(r);
+  // });
 
   // "Less" label
-  const tLess = document.createElementNS(svgNS, 'text');
-  tLess.setAttribute('x', W - 5 * STEP - 12);
-  tLess.setAttribute('y', legendY + CELL - 2);
-  tLess.setAttribute('font-size', '9');
-  tLess.setAttribute('fill', 'var(--text-muted)');
-  tLess.setAttribute('font-family', 'var(--font-sans)');
-  tLess.setAttribute('text-anchor', 'end');
-  tLess.textContent = 'Less';
-  svg.appendChild(tLess);
+  // const tLess = document.createElementNS(svgNS, 'text');
+  // tLess.setAttribute('x', W - 5 * STEP - 12);
+  // tLess.setAttribute('y', legendY + CELL - 2);
+  // tLess.setAttribute('font-size', '9');
+  // tLess.setAttribute('fill', 'var(--text-muted)');
+  // tLess.setAttribute('font-family', 'var(--font-sans)');
+  // tLess.setAttribute('text-anchor', 'end');
+  // tLess.textContent = 'Less';
+  // svg.appendChild(tLess);
 
-  // "More" label
-  const tMore = document.createElementNS(svgNS, 'text');
-  tMore.setAttribute('x', W - 4 + 4);
-  tMore.setAttribute('y', legendY + CELL - 2);
-  tMore.setAttribute('font-size', '9');
-  tMore.setAttribute('fill', 'var(--text-muted)');
-  tMore.setAttribute('font-family', 'var(--font-sans)');
-  tMore.textContent = 'More';
-  svg.appendChild(tMore);
+  // // "More" label
+  // const tMore = document.createElementNS(svgNS, 'text');
+  // tMore.setAttribute('x', W - 4 + 4);
+  // tMore.setAttribute('y', legendY + CELL - 2);
+  // tMore.setAttribute('font-size', '9');
+  // tMore.setAttribute('fill', 'var(--text-muted)');
+  // tMore.setAttribute('font-family', 'var(--font-sans)');
+  // tMore.textContent = 'More';
+  // svg.appendChild(tMore);
 
-  // adjust viewBox height to include legend
-  svg.setAttribute('viewBox', `0 0 ${W} ${H + STEP + 4}`);
+  // // adjust viewBox height to include legend
+  // svg.setAttribute('viewBox', `0 0 ${W} ${H + STEP + 4}`);
 
   // ── Compose section HTML ─────────────────────────────────────────
   container.innerHTML = `
-    <div class="panel-header">
-      <div class="panel-icon activity-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <h2 class="panel-title">Upload Activity</h2>
-      <span class="panel-badge" id="ag-badge">${totalUploads} total</span>
+  <div class="panel-header">
+    <div class="panel-icon activity-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
     </div>
+    <h2 class="panel-title">Upload Activity</h2>
+    <span class="panel-badge" id="ag-badge">${totalUploads} total</span>
+  </div>
+
+  <div class="ag-stat-wrapper">
+    <div class="ag-wrap" id="ag-svg-wrap"></div>
 
     <div class="ag-stats">
       <div class="ag-stat">
         <span class="ag-stat-val">${totalUploads}</span>
-        <span class="ag-stat-lbl">Total uploads</span>
+        <span class="ag-stat-lbl">Total Uploads</span>
+        <hr>
       </div>
       <div class="ag-stat">
         <span class="ag-stat-val">${last30}</span>
         <span class="ag-stat-lbl">Last 30 days</span>
+        <hr>
       </div>
       <div class="ag-stat">
         <span class="ag-stat-val">${activeDays}</span>
         <span class="ag-stat-lbl">Active days</span>
       </div>
     </div>
+  </div>
 
-    <div class="ag-wrap" id="ag-svg-wrap"></div>
   `;
 
   document.getElementById('ag-svg-wrap').appendChild(svg);

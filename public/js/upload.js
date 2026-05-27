@@ -113,13 +113,43 @@ function setUploadUI(loading, wrap, fill, lbl, btn) {
   btn.querySelector('.btn-spinner').classList.toggle('hidden', !loading);
 }
 
-// ── Shared alert helper ───────────────────────────────────────────────────────
+// ── Shared alert helper — fixed toast, no layout jump ────────────────────────
 export function showGlobalAlert(msg, type = 'success') {
-  const el = document.getElementById('global-alert');
-  if (!el) return;
-  el.className = `alert alert-${type}`;
-  el.textContent = msg;       // textContent — never innerHTML with external data
-  el.classList.remove('hidden');
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.classList.add('hidden'), 5000);
+  // Reuse existing toast or create one
+  let toast = document.getElementById('global-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'global-toast';
+    document.body.appendChild(toast);
+  }
+
+  // Icon per type
+  const icons = {
+    success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    warning: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  };
+
+  toast.className = `global-toast toast-${type}`;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.success}</span>
+    <span class="toast-msg"></span>
+    <button class="toast-close" aria-label="Dismiss">&times;</button>
+  `;
+  toast.querySelector('.toast-msg').textContent = msg;
+  toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
+
+  // Trigger slide-in
+  requestAnimationFrame(() => toast.classList.add('toast-visible'));
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => dismissToast(toast), 5000);
+}
+
+function dismissToast(toast) {
+  toast.classList.remove('toast-visible');
+  toast.classList.add('toast-hiding');
+  toast.addEventListener('transitionend', () => toast.classList.remove('toast-hiding'), { once: true });
 }
