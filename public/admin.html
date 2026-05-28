@@ -74,135 +74,153 @@
     <!-- ════ TWO-COLUMN LAYOUT ════ -->
     <div class="dashboard-body">
 
-      <!-- ══ LEFT RAIL — Control Plane ══ -->
+      <!-- ══ LEFT RAIL — Activity Plane ══ -->
       <aside class="left-rail">
 
-        <!-- 2×2 Stat Grid -->
+        <!-- 4×1 vertical stat cards -->
         <section class="stat-grid" id="stat-grid" aria-label="System status">
-          <div class="stat-card skeleton"></div>
-          <div class="stat-card skeleton"></div>
-          <div class="stat-card skeleton"></div>
-          <div class="stat-card skeleton"></div>
+          <div class="stat-card skeleton" style="height:40px;"></div>
+          <div class="stat-card skeleton" style="height:40px;"></div>
+          <div class="stat-card skeleton" style="height:40px;"></div>
+          <div class="stat-card skeleton" style="height:40px;"></div>
         </section>
 
-        <!-- Upload Firmware -->
-        <div class="panel" id="upload-panel">
-          <div class="panel-header">
-            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" aria-hidden="true">
-              <polyline points="16 16 12 12 8 16" />
-              <line x1="12" y1="12" x2="12" y2="21" />
-              <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
-            </svg>
-            <h2 class="panel-title">Upload Firmware</h2>
-          </div>
-          <form id="upload-form" novalidate>
-            <div class="drop-zone" id="drop-zone" role="button" tabindex="0"
-              aria-label="Click or drag to select firmware file">
-              <div class="drop-zone-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </div>
-              <p class="drop-zone-text">Drop <strong>.bin</strong> or click</p>
-              <p class="drop-zone-hint" id="upload-filename">Max 10 MB · ESP32 binary</p>
-              <input type="file" id="firmware-input" name="firmware" accept=".bin" class="sr-only">
-            </div>
-            <div class="field-group">
-              <label for="upload-version" class="field-label">Version</label>
-              <div class="field-wrapper">
-                <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" aria-hidden="true">
-                  <polyline points="16 18 22 12 16 6" />
-                  <polyline points="8 6 2 12 8 18" />
-                </svg>
-                <input id="upload-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.5"
-                  pattern="\d+\.\d+\.\d+" required>
-              </div>
-            </div>
-            <div class="progress-wrap hidden" id="upload-progress-wrap">
-              <div class="progress-bar">
-                <div class="progress-fill" id="upload-progress-fill"></div>
-              </div>
-              <span class="progress-label" id="upload-progress-label">0%</span>
-            </div>
-            <button type="submit" id="upload-btn" class="btn btn-success btn-full">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <polyline points="16 16 12 12 8 16" />
-                <line x1="12" y1="12" x2="12" y2="21" />
-                <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
-              </svg>
-              <span class="btn-text">Upload &amp; Activate</span>
-              <span class="btn-spinner hidden"></span>
-            </button>
-          </form>
-        </div>
-
-        <!-- Switch Version -->
-        <div class="panel" id="switch-panel">
-          <div class="panel-header">
-            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" aria-hidden="true">
-              <polyline points="17 1 21 5 17 9" />
-              <path d="M3 11V9a4 4 0 014-4h14" />
-              <polyline points="7 23 3 19 7 15" />
-              <path d="M21 13v2a4 4 0 01-4 4H3" />
-            </svg>
-            <h2 class="panel-title">Switch Version</h2>
-          </div>
-          <form id="switch-form" novalidate>
-            <div class="field-group">
-              <label for="switch-version" class="field-label">Target version</label>
-              <div class="field-wrapper">
-                <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <input id="switch-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.3"
-                  pattern="\d+\.\d+\.\d+">
-              </div>
-            </div>
-            <button type="submit" id="switch-btn" class="btn btn-primary btn-full">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <polyline points="17 1 21 5 17 9" />
-                <path d="M3 11V9a4 4 0 014-4h14" />
-              </svg>
-              Switch Version
-            </button>
-          </form>
-        </div>
-
-        <!-- Rollback — bottom of rail, intentionally last -->
-        <div class="panel panel-rollback" id="rollback-panel">
-          <div class="panel-header">
-            <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)"
-              stroke-width="2" aria-hidden="true">
-              <polyline points="1 4 1 10 7 10" />
-              <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
-            </svg>
-            <h2 class="panel-title" style="color:var(--amber)">Rollback</h2>
-          </div>
-          <p class="panel-desc">Revert all devices to their previous flash partition. Cannot be undone — 15 min window.
-          </p>
-          <div id="rollback-btn-area"></div>
-        </div>
-
-      </aside><!-- /.left-rail -->
-
-      <!-- ══ RIGHT CANVAS — Data Plane ══ -->
-      <div class="right-canvas">
-
-        <!-- Activity Graph -->
+        <!-- Activity Graph (moved into left rail) -->
         <section class="panel" id="activity-graph-panel">
           <!-- Rendered by activityGraph.js -->
           <div class="ag-placeholder skeleton" style="height:100%;border-radius:var(--radius)"></div>
         </section>
+
+      </aside><!-- /.left-rail -->
+
+      <!-- ══ RIGHT CANVAS — Upload + Data Plane ══ -->
+      <div class="right-canvas">
+
+        <!-- Upper panel start here -->
+        <div id="upper-row-panels">
+          <!-- Upload Firmware (full-width, 2-col internal layout) -->
+          <div class="panel" id="upload-panel">
+            <div class="panel-header">
+              <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="16 16 12 12 8 16" />
+                <line x1="12" y1="12" x2="12" y2="21" />
+                <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
+              </svg>
+              <h2 class="panel-title">Upload Firmware</h2>
+            </div>
+            <form id="upload-form" novalidate>
+              <!-- 2-col grid: drop zone | version + controls -->
+              <div class="upload-form-grid">
+                <!-- Left col: drop zone -->
+                <div class="drop-zone" id="drop-zone" role="button" tabindex="0"
+                  aria-label="Click or drag to select firmware file">
+                  <div class="drop-zone-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                  </div>
+                  <p class="drop-zone-text">Drop <strong>.bin</strong> or click</p>
+                  <p class="drop-zone-hint" id="upload-filename">Max 10 MB · ESP32 binary</p>
+                  <input type="file" id="firmware-input" name="firmware" accept=".bin" class="sr-only">
+                </div>
+                <!-- Right col: version + progress + submit -->
+                <div class="upload-controls">
+                  <div class="field-group">
+                    <label for="upload-version" class="field-label">Version</label>
+                    <div class="field-wrapper">
+                      <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                      </svg>
+                      <input id="upload-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.5"
+                        pattern="\d+\.\d+\.\d+" required>
+                    </div>
+                  </div>
+                  <div class="progress-wrap hidden" id="upload-progress-wrap">
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="upload-progress-fill"></div>
+                    </div>
+                    <span class="progress-label" id="upload-progress-label">0%</span>
+                  </div>
+                  <button type="submit" id="upload-btn" class="btn btn-success btn-full">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      aria-hidden="true">
+                      <polyline points="16 16 12 12 8 16" />
+                      <line x1="12" y1="12" x2="12" y2="21" />
+                      <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
+                    </svg>
+                    <span class="btn-text">Upload &amp; Activate</span>
+                    <span class="btn-spinner hidden"></span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Switch Version + Rollback — 2-col side-by-side grid -->
+          <div class="action-grid">
+
+            <!-- Switch Version (1×1) -->
+            <div class="panel" id="switch-panel">
+              <div class="panel-header">
+                <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 014-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 01-4 4H3" />
+                </svg>
+                <h2 class="panel-title">Switch Version</h2>
+              </div>
+              <form id="switch-form" novalidate>
+                <div class="field-group">
+                  <label for="switch-version" class="field-label">Target version</label>
+                  <div class="field-wrapper">
+                    <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <input id="switch-version" type="text" name="version" class="field-input" placeholder="e.g. 1.1.3"
+                      pattern="\d+\.\d+\.\d+">
+                  </div>
+                </div>
+                <button type="submit" id="switch-btn" class="btn btn-primary btn-full">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <polyline points="17 1 21 5 17 9" />
+                    <path d="M3 11V9a4 4 0 014-4h14" />
+                  </svg>
+                  Switch Version
+                </button>
+              </form>
+            </div>
+
+            <!-- Rollback (1×1) -->
+            <div class="panel panel-rollback" id="rollback-panel">
+              <div class="panel-header">
+                <svg class="panel-header-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--amber)" stroke-width="2" aria-hidden="true">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+                </svg>
+                <h2 class="panel-title">Rollback</h2>
+              </div>
+              <p class="panel-desc">Revert all devices to their previous flash partition. Cannot be undone — 15 min
+                window.
+              </p>
+              <div id="rollback-btn-area"></div>
+            </div>
+
+          </div><!-- /.action-grid -->
+        </div>
+
 
         <!-- Firmware Table -->
         <section class="panel" id="firmware-table-panel">

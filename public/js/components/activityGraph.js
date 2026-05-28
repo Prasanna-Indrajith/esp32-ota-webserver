@@ -23,10 +23,10 @@ function buildWeekGrid() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Go back to the most recent Sunday that gives us 53 columns max
+  // Show ~3 months (13 weeks) of history
   const startDay = new Date(today);
-  startDay.setDate(startDay.getDate() - 364); // ~52 weeks back
-  // rewind to Sunday
+  startDay.setDate(startDay.getDate() - 90); // ~13 weeks back
+  // rewind to Sunday of that week
   startDay.setDate(startDay.getDate() - startDay.getDay());
 
   const weeks = [];
@@ -245,22 +245,20 @@ export function renderActivityGraph(firmwares) {
   </div>
 
   <div class="ag-stat-wrapper">
-    <div class="ag-wrap" id="ag-svg-wrap"></div>
+    <div class="ag-wrap" id="ag-svg-wrap" style="flex:1;min-height:0;overflow:auto;"></div>
 
     <div class="ag-stats">
       <div class="ag-stat">
         <span class="ag-stat-val">${totalUploads}</span>
-        <span class="ag-stat-lbl">Total Uploads</span>
-        <hr>
+        <span class="ag-stat-lbl">Total</span>
       </div>
       <div class="ag-stat">
         <span class="ag-stat-val">${last30}</span>
-        <span class="ag-stat-lbl">Last 30 days</span>
-        <hr>
+        <span class="ag-stat-lbl">Last 30d</span>
       </div>
       <div class="ag-stat">
         <span class="ag-stat-val">${activeDays}</span>
-        <span class="ag-stat-lbl">Active days</span>
+        <span class="ag-stat-lbl">Active Days</span>
       </div>
     </div>
   </div>
