@@ -21,3 +21,35 @@ node_modules/
 *.swo
 Thumbs.db
 .vscode/settings.json
+
+# === Sensitive / secrets ===
+.env
+
+# === Generated state (not source code) ===
+server/data/state.json
+server/data/rollback.flag
+server/data/tmp/
+
+# === Firmware binaries ===
+firmware/
+
+# === Original PHP files (kept for reference, untracked) ===
+_php_original/
+
+# === Node ===
+node_modules/
+
+# === OS / editor ===
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+.vscode/settings.json
+
+# === Agent Skiil ===
+skills-lock.json
+.agents/
+
+*.bkp
+*.drawio
+esp32_ota_architecture.md
