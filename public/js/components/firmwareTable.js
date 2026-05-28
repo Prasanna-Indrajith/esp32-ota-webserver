@@ -40,8 +40,8 @@ export function renderFirmwareTable(firmwares, onDelete) {
       <td>${fw.sizeKB} KB</td>
       <td>${date}</td>
       <td>${fw.active
-        ? `<span class="badge-active">● Active</span>`
-        : `<span class="badge-old">Old</span>`
+        ? `<span class="badge badge-active">● Active</span>`
+        : `<span class="badge badge-old">Old</span>`
       }</td>
       <td></td>
     `;
