@@ -2,9 +2,8 @@
 .env
 
 # === Generated state (not source code) ===
-server/data/state.json
-server/data/rollback.flag
-server/data/tmp/
+server/data/
+server/projects/
 
 # === Firmware binaries ===
 firmware/
