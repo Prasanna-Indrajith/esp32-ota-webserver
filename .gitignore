@@ -25,3 +25,7 @@ Thumbs.db
 # === Agent Skiil ===
 skills-lock.json
 .agents/
+
+*.bkp
+*.drawio
+esp32_ota_architecture.md
