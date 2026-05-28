@@ -28,3 +28,7 @@ skills-lock.json
 *.bkp
 *.drawio
 esp32_ota_architecture.md
+
+# === Internal dev / migration scripts ===
+scripts/merge-css.js
+scripts/migrate-to-multi-project.js
