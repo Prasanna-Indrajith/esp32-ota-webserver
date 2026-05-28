@@ -22,7 +22,7 @@ node_modules/
 Thumbs.db
 .vscode/settings.json
 
-# === Agent Skiil ===
+# === Agent / tooling ===
 skills-lock.json
 .agents/
 
